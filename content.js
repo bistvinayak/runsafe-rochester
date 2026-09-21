@@ -181,7 +181,8 @@
   }
 
   function drawHeat(project, view, w, h) {
-    const g = heatCanvas.getContext('2d');
+    // We read the pixels back on every redraw, so tell Chrome to keep this canvas readable (avoids a console warning).
+    const g = heatCanvas.getContext('2d', { willReadFrequently: true });
     g.clearRect(0, 0, w, h);
     if (!state.prefs.heat || !state.filtered.length) return;
     const radius = Math.max(10, Math.min(48, Math.round(300 / metersPerPx(view.lat, view.z))));
