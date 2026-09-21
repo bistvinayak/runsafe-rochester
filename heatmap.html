@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RunSafe Rochester: crime heatmap and sources</title>
+  <link rel="stylesheet" href="vendor/leaflet.css">
+  <link rel="stylesheet" href="heatmap.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>RunSafe Rochester</h1>
+      <p class="sub">Reported crime near you, straight from the Rochester Police Department, with every number traceable to its source.</p>
+    </div>
+    <div class="chips" id="chips"><span class="chip">Loading data...</span></div>
+  </header>
+
+  <div class="layout">
+    <div class="mapwrap">
+      <div id="map" aria-label="Crime heatmap of Rochester, NY"></div>
+      <div class="legend"><span>fewer</span><div class="bar"></div><span>more</span></div>
+    </div>
+
+    <aside id="side">
+      <section class="panel">
+        <h2>Filters</h2>
+        <div class="grid">
+          <label>Period<select id="days"></select></label>
+          <label>Time of day<select id="tod"></select></label>
+          <label class="full">Show<select id="group"></select></label>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" id="heat"> Heatmap</label>
+          <label><input type="checkbox" id="dots"> Individual incidents (zoom in)</label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>What you are looking at</h2>
+        <p id="summary" class="big"></p>
+        <div id="bycat"></div>
+        <h3>When they happen</h3>
+        <div id="hours" class="hours" aria-label="Incidents by hour of day"></div>
+        <div class="hours-axis"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>12a</span></div>
+      </section>
+
+      <section class="panel">
+        <h2>Most recent</h2>
+        <div id="latest" class="latest"></div>
+      </section>
+    </aside>
+  </div>
+
+  <main class="trust" id="trust">
+    <h2>Why you can trust this, and where it stops</h2>
+    <div class="cols">
+      <section>
+        <h3>1. Where the data comes from</h3>
+        <p>Every incident on this page is a record published by the Rochester Police Department in its public open data portal. We do not add, remove or edit records.</p>
+        <ul>
+          <li><a href="https://data-rpdny.opendata.arcgis.com/" target="_blank" rel="noopener">RPD Open Data Portal ↗</a></li>
+          <li><a href="https://www.arcgis.com/home/item.html?id=74c62e65e3b347e289a07d02d4b8c899" target="_blank" rel="noopener">Dataset page: Part I Crime, 2011 to present ↗</a></li>
+          <li><a href="https://maps.cityofrochester.gov/arcgis/rest/services/RPD/RPD_Part_I_Crime/FeatureServer/3" target="_blank" rel="noopener">Raw data service ↗</a></li>
+        </ul>
+      </section>
+      <section>
+        <h3>2. Check it yourself</h3>
+        <ul>
+          <li>Click any dot on the map, then use <b>Raw RPD record</b> to see that record exactly as RPD publishes it.</li>
+          <li><a id="countLink" href="#" target="_blank" rel="noopener">Ask RPD's server for the record count ↗</a>. It should match the number in the header, give or take records added since this page loaded.</li>
+          <li><button id="csv" class="linkbtn">Download what you see as CSV</button> and open it in a spreadsheet.</li>
+        </ul>
+        <p class="fine" id="freshness"></p>
+      </section>
+      <section>
+        <h3>3. What we do with it</h3>
+        <p>The heatmap only smooths RPD's points so clusters are easy to see. Dots are the individual records, placed where RPD geocoded them. An area's rating compares it with every 200 m spot in the urban part of the city, using the same filters. Incidents count more when they are more serious:</p>
+        <table id="weights"></table>
+      </section>
+      <section>
+        <h3>4. What it cannot tell you</h3>
+        <ul>
+          <li>Records are preliminary and unverified, and RPD may reclassify them later. RPD does not guarantee their accuracy or timeliness.</li>
+          <li>Only crimes that were reported and recorded appear. Rape is left out of the public data for privacy.</li>
+          <li>Counts reflect where people report and where police patrol, not just where crime happens. A quiet map is not a guarantee of safety.</li>
+          <li>Only the City of Rochester is covered. Suburbs and neighboring towns are separate agencies.</li>
+          <li>Lighting, foot traffic and time of day matter and are not fully captured here. Trust your instincts.</li>
+        </ul>
+        <p class="fine">RunSafe is an independent project. It is not made, checked or endorsed by the Rochester Police Department or the City of Rochester.</p>
+      </section>
+    </div>
+  </main>
+
+  <script src="vendor/leaflet.js"></script>
+  <script src="vendor/leaflet-heat.js"></script>
+  <script src="lib/score.js"></script>
+  <script src="lib/format.js"></script>
+  <script src="lib/data.js"></script>
+  <script src="heatmap.js"></script>
+</body>
+</html>
