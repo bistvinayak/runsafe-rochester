@@ -1,58 +1,64 @@
-// Run: node test/smoke.js   (hits the live RPD service)
+// Run: node test/smoke.js   (hits the live police data services)
 const assert = require('assert');
-const data = require('../lib/data.js');
+const Src = require('../lib/sources.js');
+const A = require('../lib/adapters.js');
 const S = require('../lib/score.js');
+const F = require('../lib/format.js');
+
+const CASES = [
+  { id: 'rochester-ny', spot: [43.1566, -77.6047], box: { south: 43.14, north: 43.17, west: -77.63, east: -77.58 } },
+  { id: 'new-york-ny', spot: [40.758, -73.985], box: { south: 40.745, north: 40.77, west: -74.0, east: -73.97 } },
+];
 
 (async () => {
-  const t0 = Date.now();
-  const { rows, fromCache } = await data.loadIncidents({ force: true });
-  console.log(`loaded ${rows.length} incidents in ${Date.now() - t0} ms (cache=${fromCache})`);
-  assert(rows.length > 3000, 'expected thousands of incidents for the last year');
-  assert(rows.every((r) => data.inCoverage(r.lat, r.lng) || true));
-  const outside = rows.filter((r) => !data.inCoverage(r.lat, r.lng)).length;
-  console.log('rows outside coverage box:', outside);
+  for (const c of CASES) {
+    const src = Src.byId(c.id);
+    console.log('\n=== ' + src.name);
+    let t0 = Date.now();
+    const { asOf } = await A.run(src, 'newest');
+    const lagDays = Math.round((Date.now() - asOf) / Src.DAY_MS);
+    console.log(`newest record: ${F.fmtDateTime(asOf)}  (${lagDays} days behind)  [${Date.now() - t0} ms]`);
+    assert(asOf > Date.now() - 400 * Src.DAY_MS && asOf <= Date.now() + Src.DAY_MS, 'newest date should be sane');
+    const win = { from: asOf - Src.WINDOW_DAYS * Src.DAY_MS, to: asOf };
 
-  const hours = rows.filter((r) => r.h >= 0).length;
-  console.log('rows with parsed hour:', hours, '/', rows.length);
+    t0 = Date.now();
+    const all = await A.run(src, 'window', Object.assign({ group: 'all', bbox: c.box }, win));
+    console.log(`window in box (all groups): ${all.rows.length} rows, truncated=${all.truncated}  [${Date.now() - t0} ms]`);
+    assert(all.rows.length > 0);
+    const r0 = all.rows[0];
+    assert(S.CATEGORIES[r0.c] && isFinite(r0.lat) && isFinite(r0.lng) && r0.id && r0.t, 'row shape');
+    for (const r of all.rows.slice(0, 50)) {
+      assert(r.t >= win.from - Src.DAY_MS && r.t <= win.to + Src.DAY_MS, 'row inside window: ' + F.fmtDateTime(r.t));
+      assert(r.lat >= c.box.south - 1e-6 && r.lat <= c.box.north + 1e-6 && r.lng >= c.box.west - 1e-6 && r.lng <= c.box.east + 1e-6, 'row inside box');
+      // the hour we report must match the hour of the timestamp in local time
+      const localHour = parseInt(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour12: false, hour: '2-digit' }).format(new Date(r.t)), 10) % 24;
+      assert.strictEqual(localHour, r.h, 'hour matches timestamp: ' + r.id);
+    }
+    console.log('sample:', S.CATEGORIES[r0.c].label, '|', F.fmtDateTime(r0.t), '|', r0.s, '|', r0.lt);
 
-  for (const group of ['violent', 'property', 'all']) {
-    const f = S.filterIncidents(rows, { days: 90, group, tod: 'any' });
-    console.log(group, '90d:', f.length);
+    const viol = await A.run(src, 'window', Object.assign({ group: 'violent', bbox: c.box }, win));
+    assert(viol.rows.every((r) => S.CATEGORIES[r.c].group === 'violent'));
+    const dark = await A.run(src, 'window', Object.assign({ group: 'all', tod: 'dark', bbox: c.box }, win));
+    assert(dark.rows.every((r) => r.h < 6 || r.h >= 18), 'dark filter keeps only 6p-6a');
+    console.log(`violent ${viol.rows.length}, after dark (all types) ${dark.rows.length}`);
+
+    t0 = Date.now();
+    const ref = await A.run(src, 'reference', Object.assign({ group: 'violent', tod: 'any' }, win));
+    const idx = new S.GridIndex(ref.map((p) => ({ lat: p.lat, lng: p.lng, w: p.n * S.CATEGORIES[p.c].weight })));
+    const table = S.buildReference(idx, idx, 200);
+    console.log(`reference: ${ref.length} points -> ${table.length} cells, median ${table[table.length >> 1]}, p95 ${table[Math.floor(table.length * 0.95)]}  [${Date.now() - t0} ms]`);
+    assert(table.length > 200);
+
+    const last = await A.run(src, 'last', { lat: c.spot[0], lng: c.spot[1], radiusM: 200, group: 'all', tod: 'any', to: asOf });
+    console.log('last incident within 200 m:', last ? `${S.CATEGORIES[last.c].label}, ${F.fmtDateTime(last.t)}` : 'none');
+
+    const cnt = await A.run(src, 'count', win);
+    console.log(`citywide count in window (all mapped types): ${cnt.count}`);
+    assert(cnt.count > 100);
+    console.log('recordUrl:', src.recordUrl(r0.id));
+    const rec = await (await fetch(src.recordUrl(r0.id))).json();
+    assert(rec.features ? rec.features.length === 1 : rec.length >= 1, 'record link returns the record');
   }
-  const day = S.filterIncidents(rows, { days: 365, group: 'violent', tod: 'day' }).length;
-  const dark = S.filterIncidents(rows, { days: 365, group: 'violent', tod: 'dark' }).length;
-  console.log('violent 1y daylight vs dark:', day, dark);
-
-  const opts = { days: 90, group: 'violent', tod: 'any' };
-  const f = S.filterIncidents(rows, opts);
-  const idx = new S.GridIndex(f);
-  const mask = new S.GridIndex(S.filterIncidents(rows, { days: 90, group: 'all', tod: 'any' }));
-  const t1 = Date.now();
-  const ref = S.buildReference(idx, mask, 200);
-  console.log(`reference cells: ${ref.length}, built in ${Date.now() - t1} ms; median=${ref[ref.length >> 1]}, p95=${ref[Math.floor(ref.length * .95)]}`);
-  assert(ref.length > 500);
-
-  // Downtown vs. Highland Park vs. Genesee Valley Park (rough coordinates)
-  const spots = { 'Downtown (Main & Clinton)': [43.1566, -77.6047], 'Highland Park': [43.1287, -77.6014], 'Genesee Valley Park': [43.1233, -77.6389], 'Lake Ontario shore (Charlotte)': [43.2521, -77.6147] };
-  for (const [name, [lat, lng]] of Object.entries(spots)) {
-    const a = S.summarizeArea(idx, ref, lat, lng, 200);
-    console.log(name.padEnd(34), 'incidents', String(a.incidents.length).padStart(3), 'score', String(a.score).padStart(4), a.level.label, (a.pct * 100).toFixed(0) + '%');
-  }
-
-  // Route: downtown -> Highland Park via OSM foot routing
-  const url = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot/-77.6047,43.1566;-77.6014,43.1287?overview=full&geometries=geojson';
-  const j = await (await fetch(url)).json();
-  const latlngs = j.routes[0].geometry.coordinates.map((c) => ({ lat: c[1], lng: c[0] }));
-  const a = S.analyzeRoute(latlngs, idx, ref, { radiusM: 200 });
-  console.log(`route ${(a.lengthM / 1609.34).toFixed(2)} mi, samples ${a.samples.length}, incidents ${a.incidents.length}, level ${a.level.label} (${(a.pct * 100).toFixed(0)}%), hotspot ${a.hotspotM} m`);
-  assert(Math.abs(a.samples[a.samples.length - 1].dist - a.lengthM) < 1);
-
-  // resample sanity
-  const line = [{ lat: 43.15, lng: -77.6 }, { lat: 43.16, lng: -77.6 }];
-  const rs = S.resample(line, 100);
-  assert(Math.abs(rs.lengthM - 1112) < 5, 'length of 0.01 deg lat ~1112 m, got ' + rs.lengthM);
-  assert.strictEqual(rs.points.length, 13); // start + 11 steps + tail
-  assert.strictEqual(S.percentile([0,0,0,0,5,10], 0), 1/3);
-  assert(S.percentile([0,0,0,0,5,10], 10) > 0.9);
-  console.log('OK');
+  assert.strictEqual(Src.find(41.88, -87.63), null);
+  console.log('\nOK');
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -30,7 +30,8 @@ h3 { margin: 14px 0 6px; font-size: 13px; text-transform: uppercase; letter-spac
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .grid .full { grid-column: 1 / -1; }
 label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); }
-select { font: inherit; font-size: 14px; padding: 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+select { font: inherit; font-size: 14px; padding: 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); width: 100%; min-width: 0; text-overflow: ellipsis; }
+.grid > label { min-width: 0; }
 .checks { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
 .checks label { flex-direction: row; align-items: center; gap: 6px; font-size: 14px; color: var(--ink); }
 

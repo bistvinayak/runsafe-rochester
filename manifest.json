@@ -1,20 +1,35 @@
 {
   "manifest_version": 3,
-  "name": "RunSafe Rochester",
-  "version": "0.1.0",
-  "description": "Overlays recent reported crime from the Rochester (NY) Police Department on Google Maps and scores running routes.",
-  "permissions": ["storage"],
+  "name": "RunSafe",
+  "version": "0.2.0",
+  "description": "Shows recent reported crime from police open data as a heatmap on Google Maps, and rates running routes. Rochester NY and New York City so far.",
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
     "https://maps.cityofrochester.gov/*",
+    "https://data.cityofnewyork.us/*",
     "https://routing.openstreetmap.de/*"
   ],
-  "background": { "service_worker": "background.js" },
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
-      "matches": ["https://www.google.com/maps*"],
-      "js": ["lib/score.js", "lib/format.js", "content.js"],
+      "matches": [
+        "https://www.google.com/maps*"
+      ],
+      "js": [
+        "lib/score.js",
+        "lib/format.js",
+        "lib/sources.js",
+        "lib/live.js",
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ],
-  "action": { "default_title": "RunSafe: show or hide on Google Maps, or open the full heatmap" }
+  "action": {
+    "default_title": "RunSafe: show or hide on Google Maps, or open the full heatmap"
+  }
 }

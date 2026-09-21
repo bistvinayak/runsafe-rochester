@@ -1,5 +1,6 @@
 // Network requests live here so they are not subject to the page's CORS or CSP.
-importScripts('lib/data.js');
+// Nothing is cached: each request goes to the police data service and the answer is handed straight back.
+importScripts('lib/score.js', 'lib/sources.js', 'lib/adapters.js');
 
 const ROUTE_URL = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot/';
 
@@ -13,9 +14,12 @@ async function fetchRoute(coords) {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === 'incidents') {
-    RunSafe.data.loadIncidents({ force: !!msg.force })
-      .then((r) => sendResponse({ ok: true, rows: r.rows, savedAt: r.savedAt, fromCache: r.fromCache }))
+  if (msg.type === 'src') {
+    // { type: 'src', id, op, args }: run one adapter operation for a configured source.
+    const source = RunSafe.sources.byId(msg.id);
+    if (!source) { sendResponse({ ok: false, error: 'Unknown data source: ' + msg.id }); return false; }
+    RunSafe.adapters.run(source, msg.op, msg.args)
+      .then((result) => sendResponse({ ok: true, result }))
       .catch((e) => sendResponse({ ok: false, error: e.message }));
     return true;
   }
