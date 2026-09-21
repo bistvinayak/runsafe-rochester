@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "RunSafe",
   "version": "0.2.0",
-  "description": "Shows recent reported crime from police open data as a heatmap on Google Maps, and rates running routes. Rochester, New York City, Chicago and Seattle so far.",
+  "description": "Shows recent reported crime from police open data as a heatmap on Google Maps, and rates running routes. 13 cities so far, including New York, Chicago, Philadelphia and Seattle.",
   "permissions": [
     "storage"
   ],
@@ -10,8 +10,14 @@
     "https://cos-data.seattle.gov/*",
     "https://data.cityofchicago.org/*",
     "https://data.cityofnewyork.us/*",
+    "https://gis.charlottenc.gov/*",
+    "https://mapit.fortworthtexas.gov/*",
     "https://maps.cityofrochester.gov/*",
-    "https://routing.openstreetmap.de/*"
+    "https://routing.openstreetmap.de/*",
+    "https://services.arcgis.com/*",
+    "https://services1.arcgis.com/*",
+    "https://services2.arcgis.com/*",
+    "https://services6.arcgis.com/*"
   ],
   "background": {
     "service_worker": "background.js"

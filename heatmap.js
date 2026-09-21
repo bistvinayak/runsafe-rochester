@@ -137,7 +137,9 @@
 
   // ---------- rendering ----------
   const groupLabel = () => GROUPS.find((g) => g[0] === prefs.group)[1].replace(/ \(.*/, '').toLowerCase();
-  const todLabel = () => TODS.find((t) => t[0] === prefs.tod)[1].toLowerCase();
+  const todLabel = () => TODS.find((t) => t[0] === effTod())[1].toLowerCase();
+  // Some sources publish dates but no times, so time of day cannot be filtered for them.
+  const effTod = () => (live.source && live.source.timeOfDay === false ? 'any' : prefs.tod);
 
   function renderChips() {
     const chips = [];
@@ -220,10 +222,12 @@
   }
 
   function render() {
-    filtered = live.source ? S.filterIncidents(live.rows, { group: prefs.group, tod: prefs.tod }) : [];
+    filtered = live.source ? S.filterIncidents(live.rows, { group: prefs.group, tod: effTod() }) : [];
     heat.setLatLngs(filtered.map((it) => [it.lat, it.lng, Math.min(1, it.w / 10 + 0.05)]));
     if (prefs.heat && live.source) { if (!map.hasLayer(heat)) heat.addTo(map); } else if (map.hasLayer(heat)) map.removeLayer(heat);
     $('city').value = live.source ? live.source.id : '';
+    $('tod').disabled = !!(live.source && live.source.timeOfDay === false);
+    $('tod').title = $('tod').disabled ? 'This source publishes dates only, not times of day' : '';
     refreshDots();
     renderChips();
     renderSummary();

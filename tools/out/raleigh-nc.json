@@ -1,0 +1,23 @@
+{
+ "id": "raleigh-nc",
+ "ok": true,
+ "lag": 0,
+ "bounds": {
+  "south": 35.7107,
+  "west": -78.8161,
+  "north": 35.96,
+  "east": -78.4965
+ },
+ "whenKind": "wall",
+ "categoryMap": {
+  "LARCENY": 6,
+  "SIMPLE ASSAULT": 8,
+  "LARCENY FROM MV": 6,
+  "MV THEFT": 7,
+  "AGGRAVATED ASSAULT": 4,
+  "BURGLARY/RESIDENTIAL": 5,
+  "BURGLARY/COMMERCIAL": 5,
+  "ROBBERY": 3,
+  "MURDER": 1
+ }
+}

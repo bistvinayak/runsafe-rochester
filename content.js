@@ -309,7 +309,7 @@
   // ---------- data pipeline ----------
   function recompute() {
     const p = state.prefs;
-    state.filtered = S.filterIncidents(live.rows, { group: p.group, tod: p.tod });
+    state.filtered = S.filterIncidents(live.rows, { group: p.group, tod: effTod() });
     state.scoreIdx = new S.GridIndex(state.filtered);
     state.byId = new Map(state.filtered.map((it) => [String(it.id), it]));
     if (state.selected && !state.byId.has(String(state.selected.id))) state.selected = null;
@@ -361,11 +361,11 @@
     const v = state.view;
     const p = state.prefs;
     if (!v || !live.source || live.status !== 'ready' || v.z < 12) return;
-    const key = [live.source.id, p.group, p.tod, v.lat.toFixed(3), v.lng.toFixed(3)].join('|');
+    const key = [live.source.id, p.group, effTod(), v.lat.toFixed(3), v.lng.toFixed(3)].join('|');
     if (state.lastInfo && state.lastInfo.key === key) return;
     state.lastInfo = { key, loading: true };
     try {
-      const row = await live.lastNear(v.lat, v.lng, p.group, p.tod);
+      const row = await live.lastNear(v.lat, v.lng, p.group, effTod());
       if (state.lastInfo && state.lastInfo.key === key) { state.lastInfo = { key, row }; renderCard(); }
     } catch (e) {
       if (state.lastInfo && state.lastInfo.key === key) { state.lastInfo = { key, failed: true }; renderCard(); }
@@ -422,6 +422,8 @@
     return rows.length ? `<ul>${rows.join('')}</ul>` : '';
   }
 
+  // Some sources publish dates but no times, so time-of-day filtering is meaningless for them.
+  const effTod = () => (live.source && live.source.timeOfDay === false ? 'any' : state.prefs.tod);
   const isStale = () => live.lagDays() >= STALE_WARNING_DAYS;
   // "last 30 days" when the data is current, otherwise the 30 days that end at the newest record.
   const windowLabel = () => (isStale() ? `the 30 days ending ${F.fmtDay(live.asOf)}` : 'the last 30 days');
@@ -521,7 +523,7 @@
     const note = (src.notes && src.notes[0]) || '';
     return `<div class="body">
       <div class="row">
-        <label>Time of day<select id="tod">${opts(TODS, p.tod)}</select></label>
+        ${src.timeOfDay === false ? '<label>Time of day<span class="muted" style="padding:5px 0">not published</span></label>' : `<label>Time of day<select id="tod">${opts(TODS, p.tod)}</select></label>`}
         <label>Show<select id="group">${opts(GROUPS, p.group)}</select></label>
       </div>
       <div class="check"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="heat"${p.heat ? ' checked' : ''}> Show heatmap</label><button class="link" id="open">Full heatmap and sources ↗</button></div>

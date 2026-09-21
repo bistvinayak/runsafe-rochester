@@ -1,0 +1,22 @@
+{
+ "id": "detroit-mi",
+ "ok": true,
+ "lag": 2,
+ "bounds": {
+  "south": 42.2585,
+  "west": -83.2936,
+  "north": 42.4591,
+  "east": -82.909
+ },
+ "whenKind": "utc",
+ "categoryMap": {
+  "ASSAULT": 8,
+  "LARCENY": 6,
+  "AGGRAVATED ASSAULT": 4,
+  "STOLEN VEHICLE": 7,
+  "BURGLARY": 5,
+  "ROBBERY": 3,
+  "HOMICIDE": 1,
+  "JUSTIFIABLE HOMICIDE": 1
+ }
+}

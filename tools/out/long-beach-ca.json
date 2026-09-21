@@ -1,0 +1,28 @@
+{
+ "id": "long-beach-ca",
+ "ok": true,
+ "lag": 6,
+ "bounds": {
+  "south": 33.741,
+  "west": -118.2322,
+  "north": 33.8913,
+  "east": -118.0678
+ },
+ "whenKind": "utc",
+ "categoryMap": {
+  "SIMPLE ASSAULT": 8,
+  "MOTOR VEHICLE THEFT": 7,
+  "AGGRAVATED ASSAULT": 4,
+  "BURGLARY/BREAKING AND ENTERING": 5,
+  "SHOPLIFTING": 6,
+  "THEFT OF MOTOR VEHICLE PARTS OR ACCESSORIES": 6,
+  "THEFT FROM MOTOR VEHICLE": 6,
+  "ALL OTHER LARCENY": 6,
+  "ROBBERY": 3,
+  "THEFT FROM BUILDINGS": 6,
+  "PURSE SNATCHING": 6,
+  "POCKET PICKING": 6,
+  "MURDER & NON-NEGLIGENT MANSLAUGHTER": 1,
+  "MANSLAUGHTER BY NEGLIGENCE": 1
+ }
+}

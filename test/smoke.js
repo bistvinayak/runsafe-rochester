@@ -13,7 +13,12 @@ const CASES = [
 ];
 
 (async () => {
-  for (const s of Src.SOURCES) assert(CASES.some((c) => c.id === s.id), 'add a smoke-test case for ' + s.id);
+  // Cities added by the build tools are tested around the middle of their bounds.
+  for (const s of Src.SOURCES) {
+    if (CASES.some((c) => c.id === s.id)) continue;
+    const b = s.bounds, lat = (b.south + b.north) / 2, lng = (b.west + b.east) / 2;
+    CASES.push({ id: s.id, spot: [lat, lng], box: { south: lat - 0.03, north: lat + 0.03, west: lng - 0.04, east: lng + 0.04 } });
+  }
   for (const c of CASES) {
     const src = Src.byId(c.id);
     console.log('\n=== ' + src.name);
@@ -32,7 +37,8 @@ const CASES = [
     assert(S.CATEGORIES[r0.c] && isFinite(r0.lat) && isFinite(r0.lng) && r0.id && r0.t, 'row shape');
     for (const r of all.rows.slice(0, 50)) {
       assert(r.t >= win.from - Src.DAY_MS && r.t <= win.to + Src.DAY_MS, 'row inside window: ' + F.fmtDateTime(r.t));
-      assert(r.lat >= c.box.south - 1e-6 && r.lat <= c.box.north + 1e-6 && r.lng >= c.box.west - 1e-6 && r.lng <= c.box.east + 1e-6, 'row inside box');
+      const tol = 0.002; // about 200 m: servers that store coordinates in a state grid reproject with small rounding
+      assert(r.lat >= c.box.south - tol && r.lat <= c.box.north + tol && r.lng >= c.box.west - tol && r.lng <= c.box.east + tol, 'row inside box');
       // the hour we report must match the hour of the timestamp in local time
       const localHour = parseInt(new Intl.DateTimeFormat('en-US', { timeZone: src.timezone || 'America/New_York', hour12: false, hour: '2-digit' }).format(new Date(r.t)), 10) % 24;
       assert.strictEqual(localHour, r.h, 'hour matches timestamp: ' + r.id);

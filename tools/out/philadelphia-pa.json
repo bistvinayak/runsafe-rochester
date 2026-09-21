@@ -1,0 +1,20 @@
+{
+ "id": "philadelphia-pa",
+ "ok": true,
+ "lag": 0,
+ "bounds": {
+  "south": 39.8763,
+  "west": -75.2652,
+  "north": 40.1298,
+  "east": -74.9498
+ },
+ "whenKind": "wall",
+ "categoryMap": {
+  "100": 1,
+  "300": 3,
+  "400": 4,
+  "500": 5,
+  "600": 6,
+  "700": 7
+ }
+}
