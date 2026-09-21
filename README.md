@@ -1,6 +1,6 @@
 # RunSafe
 
-Chrome extension that shows recent reported crime from police open data as a heatmap on Google Maps, and rates running routes. Covers Rochester, NY and New York City so far.
+Chrome extension that shows recent reported crime from police open data as a heatmap on Google Maps, and rates running routes. Covers Rochester, New York City, Chicago and Seattle so far. See [COVERAGE.md](COVERAGE.md) for the 50 largest US cities.
 
 RunSafe is an independent project. It is not made, checked or endorsed by any police department or city.
 
@@ -8,7 +8,7 @@ RunSafe is an independent project. It is not made, checked or endorsed by any po
 
 1. Open `chrome://extensions` and switch on **Developer mode** (top right).
 2. Click **Load unpacked** and pick this folder. (After pulling changes, click the reload arrow on the RunSafe card, then refresh your Google Maps tab.)
-3. Open https://www.google.com/maps and go to Rochester or New York City. A blue RunSafe card appears at the top right.
+3. Open https://www.google.com/maps and go to a covered city (see COVERAGE.md). A blue RunSafe card appears at the top right.
 
 On Google Maps, the toolbar icon shows or hides the overlay. On any other tab it opens the full heatmap page.
 
@@ -16,7 +16,7 @@ On Google Maps, the toolbar icon shows or hides the overlay. On any other tab it
 
 - **Heatmap** of reported incidents for the 30 days ending at the newest record, filtered by type (violent, property, all) and time of day (any, daylight, after dark). Zoom in past level 16 to see individual incidents.
 - **Area rating** for the dashed circle at the middle of the map (200 m radius): how it ranks against the rest of the same city, with counts by crime type.
-- **Last reported:** a live lookup of the most recent incident within 200 m, over the whole dataset, so a quiet spot still says when something last happened.
+- **Last reported:** a live lookup of the most recent incident within 200 m over the last 2 years, so a quiet spot still says when something last happened.
 - **Clickable incidents:** click a dot on the map (zoom 16+) or a row in the card's list to see the type, description, exact date and time, and a link to the unmodified police record.
 - **Route rating** on Google's directions pages: it fetches an approximate on-foot route between your start and end (OpenStreetMap routing), colors it green to red by nearby incident density, and summarizes it.
 - **Clear states:** the card says when data is loading, when the source is unreachable, and when an area is not covered yet (with a link to request it as a GitHub issue).
@@ -34,10 +34,12 @@ Nothing about incidents is stored on the computer. When you open a covered area:
 
 ## Sources
 
-| Area | Agency | Dataset | Notes |
+| Area | Agency | Data system | Notes |
 |---|---|---|---|
-| Rochester, NY | Rochester Police Department | Part I Crime (ArcGIS) | Data is a day or two behind. Rape is excluded from the public data. |
-| New York City | NYPD | Complaint Data Current Year To Date (Socrata) | Published with a delay of weeks to months. Rape, sex crimes, harassment, drugs and similar offenses are left out. Suspect and victim fields are never loaded. |
+| Rochester, NY | Rochester Police Department | ArcGIS | A day or two behind. Rape is excluded from the public data. Checked by hand. |
+| New York City | NYPD | Socrata | Published with a delay of weeks to months. Rape, sex crimes, harassment, drugs and similar offenses are left out. Suspect and victim fields are never loaded. Checked by hand. |
+| Chicago | Chicago Police Department | Socrata | About a week behind. Block-level locations. Setup generated and validated by tools, not yet reviewed by a person. |
+| Seattle | Seattle Police Department | Socrata | About a day behind. Some locations are hidden. Setup generated and validated by tools, not yet reviewed by a person. |
 
 Ratings only compare places within the same city. Different departments define and count crimes differently, so do not compare one city with another.
 
@@ -57,7 +59,7 @@ Google Maps has no overlay API for extensions. The content script reads the map 
 
 ## Development
 
-- `node test/smoke.js` runs both adapters against the live data services.
+- `node test/smoke.js` runs every configured city against its live data service, plus a regression test for stray coordinates.
 - `node test/live.test.js` checks the load-on-demand logic (small pans, far pans, filter changes, city changes, stale requests, failures).
 - `node test/background.test.js` loads the background worker with a fake `chrome`, and checks the manifest against the code.
 - `test/overlay.html` runs the real overlay code on a plain page for manual checks: serve the folder (for example `python3 -m http.server`) and open `test/overlay.html?/maps/@40.758,-73.9855,15z`.
@@ -65,10 +67,7 @@ Google Maps has no overlay API for extensions. The content script reads the map 
 
 ### Adding an area
 
-1. Add an entry to `lib/sources.js`: bounds, portal and dataset links, the data system (`arcgis` or `socrata`), the fields, and for Socrata the offense-to-category map.
-2. Add its host to `host_permissions` in `manifest.json` (the background test fails if you forget).
-3. If it uses a new data system, add an adapter to `lib/adapters.js` that answers `newest`, `window`, `reference`, `last` and `count`.
-4. Run the tests, and check the offense mapping by hand before setting `verified: true`.
+For a Socrata city, use the tools (they inspect the dataset, map its offenses, find the city's bounds and validate the result against the live server): see the steps at the bottom of [COVERAGE.md](COVERAGE.md). For another data system, add an adapter to `lib/adapters.js` that answers `newest`, `window`, `reference`, `last` and `count`, and an entry in `lib/sources.js`. Always add the data host to `host_permissions` in `manifest.json` (the background test fails if you forget) and a case to `test/smoke.js`.
 
 ## Next ideas
 

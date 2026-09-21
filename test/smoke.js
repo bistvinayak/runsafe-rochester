@@ -8,9 +8,12 @@ const F = require('../lib/format.js');
 const CASES = [
   { id: 'rochester-ny', spot: [43.1566, -77.6047], box: { south: 43.14, north: 43.17, west: -77.63, east: -77.58 } },
   { id: 'new-york-ny', spot: [40.758, -73.985], box: { south: 40.745, north: 40.77, west: -74.0, east: -73.97 } },
+  { id: 'chicago-il', spot: [41.8827, -87.6233], box: { south: 41.87, north: 41.9, west: -87.65, east: -87.6 } },
+  { id: 'seattle-wa', spot: [47.6062, -122.3321], box: { south: 47.59, north: 47.625, west: -122.35, east: -122.31 } },
 ];
 
 (async () => {
+  for (const s of Src.SOURCES) assert(CASES.some((c) => c.id === s.id), 'add a smoke-test case for ' + s.id);
   for (const c of CASES) {
     const src = Src.byId(c.id);
     console.log('\n=== ' + src.name);
@@ -31,7 +34,7 @@ const CASES = [
       assert(r.t >= win.from - Src.DAY_MS && r.t <= win.to + Src.DAY_MS, 'row inside window: ' + F.fmtDateTime(r.t));
       assert(r.lat >= c.box.south - 1e-6 && r.lat <= c.box.north + 1e-6 && r.lng >= c.box.west - 1e-6 && r.lng <= c.box.east + 1e-6, 'row inside box');
       // the hour we report must match the hour of the timestamp in local time
-      const localHour = parseInt(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour12: false, hour: '2-digit' }).format(new Date(r.t)), 10) % 24;
+      const localHour = parseInt(new Intl.DateTimeFormat('en-US', { timeZone: src.timezone || 'America/New_York', hour12: false, hour: '2-digit' }).format(new Date(r.t)), 10) % 24;
       assert.strictEqual(localHour, r.h, 'hour matches timestamp: ' + r.id);
     }
     console.log('sample:', S.CATEGORIES[r0.c].label, '|', F.fmtDateTime(r0.t), '|', r0.s, '|', r0.lt);
@@ -59,6 +62,14 @@ const CASES = [
     const rec = await (await fetch(src.recordUrl(r0.id))).json();
     assert(rec.features ? rec.features.length === 1 : rec.length >= 1, 'record link returns the record');
   }
-  assert.strictEqual(Src.find(41.88, -87.63), null);
+  assert.strictEqual(Src.find(29.76, -95.37), null); // Houston is not configured
+
+  // Regression: one stray point at (0, 0) once made the rating grid billions of cells and froze the tab.
+  const pts = [{ lat: 47.6, lng: -122.3, w: 8 }, { lat: 47.61, lng: -122.31, w: 6 }, { lat: 0, lng: 0, w: 1 }];
+  const idx = new S.GridIndex(pts);
+  const t0 = Date.now();
+  const table = S.buildReference(idx, idx, 200);
+  assert(Date.now() - t0 < 3000, 'buildReference must stay fast with an outlier, took ' + (Date.now() - t0) + ' ms');
+  console.log('outlier point handled in', Date.now() - t0, 'ms, table size', table.length);
   console.log('\nOK');
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -1,6 +1,6 @@
 // Network requests live here so they are not subject to the page's CORS or CSP.
 // Nothing is cached: each request goes to the police data service and the answer is handed straight back.
-importScripts('lib/score.js', 'lib/sources.js', 'lib/adapters.js');
+importScripts('lib/score.js', 'lib/cities.js', 'lib/sources.js', 'lib/adapters.js');
 
 const ROUTE_URL = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot/';
 

@@ -1,0 +1,20 @@
+{
+ "id": "seattle-wa",
+ "ok": true,
+ "lag": 1,
+ "bounds": {
+  "south": 47.4933,
+  "west": -122.4194,
+  "north": 47.7431,
+  "east": -122.2481
+ },
+ "categoryMap": {
+  "LARCENY-THEFT": 6,
+  "BURGLARY": 5,
+  "ASSAULT OFFENSES": 8,
+  "MOTOR VEHICLE THEFT": 7,
+  "AGGRAVATED ASSAULT": 4,
+  "ROBBERY": 3,
+  "HOMICIDE": 1
+ }
+}

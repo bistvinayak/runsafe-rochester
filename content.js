@@ -466,7 +466,7 @@
     const prefix = isStale() ? 'Last in the data:' : 'Last reported:';
     let last = '';
     if (li && li.row) last = lastLine(li.row, prefix);
-    else if (li && !li.loading && !li.failed) last = '<div class="last">None recorded here in the data.</div>';
+    else if (li && !li.loading && !li.failed) last = '<div class="last">None recorded here in the last 2 years.</div>';
     else if (li && li.loading) last = '<div class="muted" style="margin-top:4px">Looking up the last report...</div>';
     return `<div class="box"><h4>Around the dashed circle (${RADIUS_M} m)</h4>
       <span class="badge" style="background:${a.level.color}">${a.level.label}</span>

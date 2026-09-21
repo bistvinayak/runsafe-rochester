@@ -2,13 +2,15 @@
   "manifest_version": 3,
   "name": "RunSafe",
   "version": "0.2.0",
-  "description": "Shows recent reported crime from police open data as a heatmap on Google Maps, and rates running routes. Rochester NY and New York City so far.",
+  "description": "Shows recent reported crime from police open data as a heatmap on Google Maps, and rates running routes. Rochester, New York City, Chicago and Seattle so far.",
   "permissions": [
     "storage"
   ],
   "host_permissions": [
-    "https://maps.cityofrochester.gov/*",
+    "https://cos-data.seattle.gov/*",
+    "https://data.cityofchicago.org/*",
     "https://data.cityofnewyork.us/*",
+    "https://maps.cityofrochester.gov/*",
     "https://routing.openstreetmap.de/*"
   ],
   "background": {
@@ -22,6 +24,7 @@
       "js": [
         "lib/score.js",
         "lib/format.js",
+        "lib/cities.js",
         "lib/sources.js",
         "lib/live.js",
         "content.js"

@@ -38,8 +38,8 @@ const view = (lat, lng, z = 15) => ({ lat, lng, bbox: viewBbox({ lat, lng, z }, 
   console.log('to Rochester     ->', st, live.source.id, '| calls:', count(), '| rows:', live.rows.length);
   assert.strictEqual(live.source.id, 'rochester-ny');
 
-  st = await live.ensure(view(41.8781, -87.6298));
-  console.log('Chicago          ->', st, '| source:', live.source);
+  st = await live.ensure(view(29.7604, -95.3698));
+  console.log('Houston          ->', st, '| source:', live.source);
   assert.strictEqual(st, 'uncovered');
 
   // a newer call replaces an older one that is still in flight
