@@ -46,4 +46,21 @@ module.exports = [
     },
     notes: ['Seattle hides the location of some records (marked REDACTED); those cannot be mapped.', 'Sex crimes are left out so categories match other cities.'],
   },
+  // Dallas: BLOCKED. Its offense column ('offincident') has ~500 distinct free-text values, so the query listing every
+  // mapped one is too long for the server to accept (400 Bad Request). Needs pattern-based (LIKE) filtering support in the
+  // Socrata adapter before this can go live. Left here for whoever picks that up.
+  {
+    id: 'dallas-tx',
+    domain: 'www.dallasopendata.com', dataset: 'qv6i-rri7',
+    when: { field: 'date1', kind: 'floating', textDate: 'MM/DD/YYYY' },
+    fields: { id: 'servnumid', lat: 'geocoded_column.latitude', lon: 'geocoded_column.longitude', offense: 'offincident' },
+    config: {
+      name: 'Dallas', agency: 'Dallas Police Department', timezone: 'America/Chicago',
+      portal: 'https://www.dallasopendata.com/', datasetPage: 'https://www.dallasopendata.com/d/qv6i-rri7', datasetName: 'Police Incidents',
+      domain: 'www.dallasopendata.com', dataset: 'qv6i-rri7',
+      when: { field: 'date1', kind: 'floating' },
+      fields: { id: 'servnumid', lat: 'geocoded_column.latitude', lon: 'geocoded_column.longitude', cast: true, offense: 'offincident', area: 'incident_address' },
+    },
+    notes: ['Dallas dates and times are stored as separate text fields; the date used here is when the incident occurred.', 'Sex crimes are left out so categories match other cities.'],
+  },
 ];

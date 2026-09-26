@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "RunSafe",
   "version": "0.2.0",
-  "description": "Shows recent reported crime from police open data as a heatmap on Google Maps, and rates running routes. 13 cities so far, including New York, Chicago, Philadelphia and Seattle.",
+  "description": "Shows recent reported crime from police open data as a heatmap on Google Maps, and rates running routes. 16 areas so far.",
   "permissions": [
     "storage"
   ],
@@ -17,6 +17,7 @@
     "https://services.arcgis.com/*",
     "https://services1.arcgis.com/*",
     "https://services2.arcgis.com/*",
+    "https://services3.arcgis.com/*",
     "https://services6.arcgis.com/*"
   ],
   "background": {

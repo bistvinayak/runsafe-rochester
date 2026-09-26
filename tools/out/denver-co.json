@@ -1,0 +1,21 @@
+{
+ "id": "denver-co",
+ "ok": true,
+ "lag": 2,
+ "bounds": {
+  "south": 39.6157,
+  "west": -105.1005,
+  "north": 39.8619,
+  "east": -104.6641
+ },
+ "whenKind": "wall",
+ "categoryMap": {
+  "larceny": 6,
+  "theft-from-motor-vehicle": 6,
+  "auto-theft": 7,
+  "burglary": 5,
+  "aggravated-assault": 4,
+  "robbery": 3,
+  "murder": 1
+ }
+}
