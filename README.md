@@ -4,11 +4,23 @@ Chrome extension that shows recent reported crime from police open data as a hea
 
 RunSafe is an independent project. It is not made, checked or endorsed by any police department or city.
 
-## Install
+## Download
 
-1. Open `chrome://extensions` and switch on **Developer mode** (top right).
-2. Click **Load unpacked** and pick this folder. (After pulling changes, click the reload arrow on the RunSafe card, then refresh your Google Maps tab.)
-3. Open https://www.google.com/maps and go to a covered city (see COVERAGE.md). A blue RunSafe card appears at the top right.
+RunSafe is not on the Chrome Web Store yet, so it installs as an unpacked extension:
+
+1. **[Download the latest release (.zip)](https://github.com/bistvinayak/runsafe-rochester/releases/latest)** and unzip it.
+2. Open `chrome://extensions` (works in Chrome, Edge and Brave) and switch on **Developer mode** (top right).
+3. Click **Load unpacked** and select the unzipped `runsafe` folder.
+4. Open https://www.google.com/maps and go to a covered city (see [COVERAGE.md](COVERAGE.md)). A blue RunSafe card appears at the top right.
+
+To update later, download the newest release, unzip it over the old folder, then click the reload arrow on the RunSafe card at `chrome://extensions`.
+
+## Install from source (for development)
+
+1. Clone or download this repository.
+2. Open `chrome://extensions` and switch on **Developer mode** (top right).
+3. Click **Load unpacked** and pick this folder. (After pulling changes, click the reload arrow on the RunSafe card, then refresh your Google Maps tab.)
+4. Open https://www.google.com/maps and go to a covered city (see COVERAGE.md). A blue RunSafe card appears at the top right.
 
 On Google Maps, the toolbar icon shows or hides the overlay. On any other tab it opens the full heatmap page.
 
