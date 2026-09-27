@@ -1,0 +1,22 @@
+{
+ "id": "sacramento-ca",
+ "ok": true,
+ "lag": 15,
+ "bounds": {
+  "south": 38.43,
+  "west": -121.5594,
+  "north": 38.6925,
+  "east": -121.3611
+ },
+ "whenKind": "utc",
+ "categoryMap": {
+  "LARCENY": 6,
+  "ASSAULT": 8,
+  "VEHICLE THEFT": 7,
+  "BURGLARY": 5,
+  "AGG ASSAULT": 4,
+  "ROBBERY": 3,
+  "AUTO THEFT": 7,
+  "MURDER/NON-NEG": 1
+ }
+}

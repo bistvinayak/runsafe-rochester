@@ -25,7 +25,7 @@ const CASES = [
     let t0 = Date.now();
     const { asOf } = await A.run(src, 'newest');
     const lagDays = Math.round((Date.now() - asOf) / Src.DAY_MS);
-    console.log(`newest record: ${F.fmtDateTime(asOf)}  (${lagDays} days behind)  [${Date.now() - t0} ms]`);
+    console.log(`newest record: ${F.fmtDateTime(asOf, src.timezone)}  (${lagDays} days behind)  [${Date.now() - t0} ms]`);
     assert(asOf > Date.now() - 400 * Src.DAY_MS && asOf <= Date.now() + Src.DAY_MS, 'newest date should be sane');
     const win = { from: asOf - Src.WINDOW_DAYS * Src.DAY_MS, to: asOf };
 
@@ -36,14 +36,14 @@ const CASES = [
     const r0 = all.rows[0];
     assert(S.CATEGORIES[r0.c] && isFinite(r0.lat) && isFinite(r0.lng) && r0.id && r0.t, 'row shape');
     for (const r of all.rows.slice(0, 50)) {
-      assert(r.t >= win.from - Src.DAY_MS && r.t <= win.to + Src.DAY_MS, 'row inside window: ' + F.fmtDateTime(r.t));
+      assert(r.t >= win.from - Src.DAY_MS && r.t <= win.to + Src.DAY_MS, 'row inside window: ' + F.fmtDateTime(r.t, src.timezone));
       const tol = 0.002; // about 200 m: servers that store coordinates in a state grid reproject with small rounding
       assert(r.lat >= c.box.south - tol && r.lat <= c.box.north + tol && r.lng >= c.box.west - tol && r.lng <= c.box.east + tol, 'row inside box');
       // the hour we report must match the hour of the timestamp in local time
       const localHour = parseInt(new Intl.DateTimeFormat('en-US', { timeZone: src.timezone || 'America/New_York', hour12: false, hour: '2-digit' }).format(new Date(r.t)), 10) % 24;
       assert.strictEqual(localHour, r.h, 'hour matches timestamp: ' + r.id);
     }
-    console.log('sample:', S.CATEGORIES[r0.c].label, '|', F.fmtDateTime(r0.t), '|', r0.s, '|', r0.lt);
+    console.log('sample:', S.CATEGORIES[r0.c].label, '|', F.fmtDateTime(r0.t, src.timezone), '|', r0.s, '|', r0.lt);
 
     const viol = await A.run(src, 'window', Object.assign({ group: 'violent', bbox: c.box }, win));
     assert(viol.rows.every((r) => S.CATEGORIES[r.c].group === 'violent'));
@@ -59,7 +59,7 @@ const CASES = [
     assert(table.length > 200);
 
     const last = await A.run(src, 'last', { lat: c.spot[0], lng: c.spot[1], radiusM: 200, group: 'all', tod: 'any', to: asOf });
-    console.log('last incident within 200 m:', last ? `${S.CATEGORIES[last.c].label}, ${F.fmtDateTime(last.t)}` : 'none');
+    console.log('last incident within 200 m:', last ? `${S.CATEGORIES[last.c].label}, ${F.fmtDateTime(last.t, src.timezone)}` : 'none');
 
     const cnt = await A.run(src, 'count', win);
     console.log(`citywide count in window (all mapped types): ${cnt.count}`);

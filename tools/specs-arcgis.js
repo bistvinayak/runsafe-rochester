@@ -75,7 +75,23 @@ module.exports = [
     // Tucson's own numeric UCR-summary codes, not NIBRS.
     explicit: { '01': 1, '03': 3, '04': 4, '05': 5, '06': 6, '07': 7 },
     config: cfg({ name: 'Tucson', agency: 'Tucson Police Department', timezone: 'America/Phoenix', portal: 'https://gisdata.tucsonaz.gov/', datasetPage: 'https://gisdata.tucsonaz.gov/', datasetName: 'Reported Crimes, Last 45 Days',
-      fields: { id: 'IncidentNumber', when: 'OccurredDate', whenIsDateOnly: true, timeField: 'OccurredHour', offense: 'UCRSummary', numeric: false, detail: 'StatuteDescription', place: 'NeighborhoodAssociation' } }),
+      // IncidentNumber repeats across multiple offense rows for the same incident, so OBJECTID is used as the
+      // unique id instead (needed for the raw-record link). `numeric: false` is about the offense field
+      // (UCRSummary, a string type), not the id field, so it stays as it was.
+      fields: { id: 'OBJECTID', when: 'OccurredDate', whenIsDateOnly: true, timeField: 'OccurredHour', offense: 'UCRSummary', numeric: false, detail: 'StatuteDescription', place: 'NeighborhoodAssociation' } }),
     notes: ['Tucson publishes only the last 45 days. Sex crimes are left out so categories match other cities.'],
+  },
+  {
+    id: 'sacramento-ca', dataUrl: 'https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/Police_Crime_3Years/FeatureServer/0', pageSize: 2000, allowLag: true,
+    explicit: { 'ROBBERY': 3, 'AGG ASSAULT': 4, 'ASSAULT': 8, 'BURGLARY': 5, 'LARCENY': 6, 'VEHICLE THEFT': 7, 'AUTO THEFT': 7, 'MURDER/NON-NEG': 1 }, noRules: true,
+    config: cfg({ name: 'Sacramento', agency: 'Sacramento Police Department', timezone: 'America/Los_Angeles', portal: 'https://data.cityofsacramento.org/', datasetPage: 'https://data.cityofsacramento.org/', datasetName: 'Police Crime (3 years)',
+      fields: { id: 'Record_ID', when: 'Occurrence_Date_UTC', offense: 'Offense_Category', detail: 'Description', place: 'Police_District', area: 'Location' } }),
+    notes: ['Sacramento typically publishes with a lag of two to three weeks, longer than most other sources here.', 'Sacramento reports "Assault" and "Aggravated assault" as separate categories, so plain assault is treated as the lower-level category. Sex crimes are left out so categories match other cities.'],
+  },
+  {
+    id: 'columbus-oh', dataUrl: 'https://services1.arcgis.com/9yy6msODkIBzkUXU/arcgis/rest/services/Police_Incident_Reports/FeatureServer/0', pageSize: 2000,
+    config: cfg({ name: 'Columbus', agency: 'Columbus Division of Police', timezone: 'America/New_York', portal: 'https://opendata.columbus.gov/', datasetPage: 'https://opendata.columbus.gov/', datasetName: 'Police Incident Reports',
+      fields: { id: 'OBJECTID', when: 'OccurredOn', offense: 'ColumbusSubject', detail: 'ColumbusSubject', place: 'IncidentLocation' } }),
+    notes: ['Columbus classifies incidents by a detailed internal subject code; only categories that clearly match are used. Sex crimes are left out so categories match other cities.'],
   },
 ];

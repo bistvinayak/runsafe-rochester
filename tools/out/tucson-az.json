@@ -1,10 +1,10 @@
 {
  "id": "tucson-az",
  "ok": true,
- "lag": -1,
+ "lag": 0,
  "bounds": {
   "south": 32.0858,
-  "west": -111.0496,
+  "west": -111.0509,
   "north": 32.3266,
   "east": -110.7531
  },

@@ -426,11 +426,11 @@
   const effTod = () => (live.source && live.source.timeOfDay === false ? 'any' : state.prefs.tod);
   const isStale = () => live.lagDays() >= STALE_WARNING_DAYS;
   // "last 30 days" when the data is current, otherwise the 30 days that end at the newest record.
-  const windowLabel = () => (isStale() ? `the 30 days ending ${F.fmtDay(live.asOf)}` : 'the last 30 days');
+  const windowLabel = () => (isStale() ? `the 30 days ending ${F.fmtDay(live.asOf, live.source.timezone)}` : 'the last 30 days');
 
   // "Last reported: 12 days ago (Aug 15, 2026, robbery)".
   function lastLine(row, prefix) {
-    return `<div class="last">${prefix} ${F.timeAgo(row.t)} <span class="muted">(${F.fmtDate(row.t)}, ${esc(short(row.c).toLowerCase())})</span></div>`;
+    return `<div class="last">${prefix} ${F.timeAgo(row.t)} <span class="muted">(${F.fmtDate(row.t, live.source.timezone)}, ${esc(short(row.c).toLowerCase())})</span></div>`;
   }
 
   function incidentRows(incidents, key) {
@@ -447,7 +447,7 @@
     if (!it) return '';
     return `<div class="box sel"><h4>Selected incident <button class="x" id="clearSel" title="Clear">✕</button></h4>
       <div><b>${esc(S.CATEGORIES[it.c].label)}</b>: ${esc(F.lower(it.d))}</div>
-      <div class="muted">${F.fmtDateTime(it.t)} (${F.timeAgo(it.t)})</div>
+      <div class="muted">${F.fmtDateTime(it.t, live.source.timezone)} (${F.timeAgo(it.t)})</div>
       <div class="muted">${esc(F.lower(it.s))}${it.lt ? ' · ' + esc(F.lower(it.lt)) : ''}</div>
       <div style="margin-top:4px"><a href="${esc(live.source.recordUrl(it.id))}" target="_blank" rel="noopener">See the raw police record ↗</a></div>
     </div>`;
@@ -456,7 +456,7 @@
   function freshnessBox() {
     if (!live.asOf) return '';
     if (!isStale()) return '';
-    return `<div class="warn"><b>Data runs through ${F.fmtDate(live.asOf)}</b> (${live.lagDays()} days ago). ${esc(live.source.agency)} publishes with a delay, so recent incidents are missing and "last" times below are the last in the data.</div>`;
+    return `<div class="warn"><b>Data runs through ${F.fmtDate(live.asOf, live.source.timezone)}</b> (${live.lagDays()} days ago). ${esc(live.source.agency)} publishes with a delay, so recent incidents are missing and "last" times below are the last in the data.</div>`;
   }
 
   function areaBox() {

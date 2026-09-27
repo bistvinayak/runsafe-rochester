@@ -77,7 +77,7 @@
 
   function popupHtml(it) {
     return `<div class="pop"><b>${esc(S.CATEGORIES[it.c].label)}</b><br>${esc(F.lower(it.d))}
-      <div class="m">${F.fmtDateTime(it.t)} (${F.timeAgo(it.t)})<br>${esc(F.lower(it.s))}${it.lt ? ' · ' + esc(F.lower(it.lt)) : ''}</div>
+      <div class="m">${F.fmtDateTime(it.t, live.source.timezone)} (${F.timeAgo(it.t)})<br>${esc(F.lower(it.s))}${it.lt ? ' · ' + esc(F.lower(it.lt)) : ''}</div>
       <div style="margin-top:6px"><a href="${esc(live.source.recordUrl(it.id))}" target="_blank" rel="noopener">Raw police record ↗</a></div></div>`;
   }
 
@@ -150,7 +150,7 @@
     if (live.status === 'error') chips.push(`<span class="chip warn">Could not load data: ${esc(live.error)} <button class="linkbtn" id="retry">Retry</button></span>`);
     if (live.asOf && src) {
       const stale = live.lagDays() >= STALE_WARNING_DAYS;
-      chips.push(`<span class="chip${stale ? ' warn' : ''}">Data through <b>${F.fmtDate(live.asOf)}</b>${stale ? ` (${live.lagDays()} days behind)` : ''}</span>`);
+      chips.push(`<span class="chip${stale ? ' warn' : ''}">Data through <b>${F.fmtDate(live.asOf, src.timezone)}</b>${stale ? ` (${live.lagDays()} days behind)` : ''}</span>`);
       if (countInfo && countInfo.count != null) chips.push(`<span class="chip">Records in the 30 days, whole city: <b>${countInfo.count.toLocaleString()}</b></span>`);
       if (live.truncated) chips.push('<span class="chip warn">Too many to load here. Zoom in.</span>');
       if (live.loadedAt) chips.push(`<span class="chip">Fetched ${new Date(live.loadedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} <button class="linkbtn" id="refresh">Refresh</button></span>`);
@@ -177,9 +177,9 @@
     const cl = $('countLink');
     if (countInfo && countInfo.url) cl.href = countInfo.url;
     $('freshness').textContent = live.asOf
-      ? `The newest record occurred on ${F.fmtDate(live.asOf)} (${F.timeAgo(live.asOf)}). This page shows the 30 days ending then. Agencies add records after reports are filed, so very recent incidents can be missing.`
+      ? `The newest record occurred on ${F.fmtDate(live.asOf, src.timezone)} (${F.timeAgo(live.asOf)}). This page shows the 30 days ending then. Agencies add records after reports are filed, so very recent incidents can be missing.`
       : '';
-    $('windowNote').textContent = live.asOf ? `Showing the 30 days ending ${F.fmtDate(live.asOf)}.` : '';
+    $('windowNote').textContent = live.asOf ? `Showing the 30 days ending ${F.fmtDate(live.asOf, live.source.timezone)}.` : '';
   }
 
   function renderSummary() {
@@ -210,7 +210,7 @@
 
     const latest = filtered.slice().sort((a, b) => b.t - a.t).slice(0, 10);
     $('latest').innerHTML = latest.length ? latest.map((it, i) =>
-      `<button data-i="${i}"><span class="k">${esc(SHORT[it.c])}</span><span>${F.timeAgo(it.t)}</span><span class="m">${esc(F.lower(it.s))} · ${F.fmtDateTime(it.t)}</span></button>`).join('')
+      `<button data-i="${i}"><span class="k">${esc(SHORT[it.c])}</span><span>${F.timeAgo(it.t)}</span><span class="m">${esc(F.lower(it.s))} · ${F.fmtDateTime(it.t, live.source.timezone)}</span></button>`).join('')
       : '<span class="fine">Nothing matches these filters in view.</span>';
     $('latest').querySelectorAll('button').forEach((b) => {
       b.onclick = () => {
@@ -242,9 +242,9 @@
       if (/^[=+\-@\t\r]/.test(v)) v = "'" + v; // stop spreadsheets from running text as a formula
       return '"' + v.replace(/"/g, '""') + '"';
     };
-    const lines = [['record_id', 'occurred_eastern_time', 'hour', 'category', 'description', 'street_or_area', 'location_type', 'latitude', 'longitude', 'raw_record_url'].join(',')];
+    const lines = [['record_id', 'occurred_local_time', 'hour', 'category', 'description', 'street_or_area', 'location_type', 'latitude', 'longitude', 'raw_record_url'].join(',')];
     for (const it of filtered.slice().sort((a, b) => b.t - a.t)) {
-      lines.push([q(it.id), q(F.fmtDateTime(it.t)), it.h, q(S.CATEGORIES[it.c].label), q(it.d), q(it.s), q(it.lt), it.lat, it.lng, q(live.source.recordUrl(it.id))].join(','));
+      lines.push([q(it.id), q(F.fmtDateTime(it.t, live.source.timezone)), it.h, q(S.CATEGORIES[it.c].label), q(it.d), q(it.s), q(it.lt), it.lat, it.lng, q(live.source.recordUrl(it.id))].join(','));
     }
     const url = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
     const a = document.createElement('a');

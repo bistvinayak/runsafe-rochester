@@ -2,7 +2,7 @@
 
 Status as of 2026-09-21. "Live" means the source is configured and its setup passed the automated checks in `tools/build-city.js` (Socrata) or `tools/build-arcgis.js` (ArcGIS) against the live data service: fresh data, points inside the city, sensible hour-of-day shape, all core crime categories present, and an offense mapping I read through. Generated setups are labeled "automatic, not reviewed" in the card until a person has checked them.
 
-## Live: 15 of the 50 (plus Rochester, NY, which is not in the top 50)
+## Live: 17 of the 50 (plus Rochester, NY, which is not in the top 50)
 
 | City | Agency | Data system | Data lag when checked | Notes |
 |---|---|---|---|---|
@@ -21,6 +21,8 @@ Status as of 2026-09-21. "Live" means the source is configured and its setup pas
 | Denver | Denver PD | ArcGIS | 2 days | Category slugs use hyphens (e.g. `auto-theft`), mapped explicitly rather than by the general text rules. |
 | Nashville | Metro Nashville PD | ArcGIS | 1 day | One row per offense. |
 | Tucson | Tucson PD | ArcGIS | 0 days (publishes last 45 days only) | Uses its own numeric UCR-summary codes, not NIBRS; mapped explicitly. Dates only, no time field beyond an hour bucket. |
+| Sacramento | Sacramento PD | ArcGIS | 2-3 weeks | Publishes with a longer lag than most sources here; the card shows its freshness banner accordingly. |
+| Columbus | Columbus Division of Police | ArcGIS | 4 days | Uses a detailed internal subject-code taxonomy (about 130 values); mapped automatically by matching words in the description text. |
 | Rochester, NY | Rochester PD | ArcGIS | 3 days | Checked by hand. |
 
 ## Looked at, not live yet (24)
@@ -30,10 +32,10 @@ Status as of 2026-09-21. "Live" means the source is configured and its setup pas
 | Los Angeles | The fresh layer I found is the LA County Sheriff (records are in San Dimas), not LAPD. LAPD's dataset covers 2024 to 2025 with raw penal-code text. |
 | San Francisco | Clean columns and fresh data, but the server returned 403 for every structured query from my machine. Retry later and test from the extension. |
 | Austin | The public dataset has no latitude or longitude, only census block groups. It cannot be mapped at street level. |
-| Dallas | The offense column has about 500 distinct free-text values. The adapter maps offenses to an `IN (...)` list for its live queries, and that list gets too long for the server to accept (400 Bad Request) once enough values are mapped. Needs pattern-based (`LIKE`) filtering support instead of a literal list; the spec, its bounds and its offense mapping are already written in `tools/specs.js` for whoever picks this up. |
+| Dallas | The offense column has about 500 distinct free-text values, on Socrata (not ArcGIS), so the POST fix that unblocked Columbus does not apply here: Socrata rejects anonymous POST to its query endpoint. Needs pattern-based (`LIKE`) filtering support instead of a literal list; the spec, its bounds and its offense mapping are already written in `tools/specs.js` for whoever picks this up. |
 | Kansas City | Data is split into one dataset per year, which the adapter has no support for combining. |
-| Columbus | Records are classified by subject ("Domestic Violence"), not standard offense types. |
-| Sacramento, Albuquerque, Omaha | Fresh, but offense categories are coarse or need a review before mapping (for example one combined "assault"). |
+| Albuquerque | The dataset reads like a raw dispatch/CAD log (categories such as "ONSITE SUSPICIOUS", "DISTURBANCE", "SHOTS FIRED") rather than confirmed crime reports, the same kind of source this project otherwise excludes. Its one clean offense-category field (`CMLegend`) also errors on every grouped query on this particular ArcGIS Server instance, for reasons unclear. |
+| Omaha | Offense categories are coarse (for example one combined "assault"); not reviewed further. |
 | Tampa | Only about 5,000 rows a year, which looks incomplete. |
 | Houston | Its NIBRS layers are split by offense group (Person, Property, Society, Group B) across four separate ArcGIS layers with no single combined view. The adapter handles one layer per city, so this needs support for merging several layers into one source. |
 | Atlanta, Miami, Oakland, Memphis, Colorado Springs, Portland, Milwaukee, Minneapolis, Tulsa, Mesa | The layers I found are stale (5 months to 7 years old) or cover something else (Mesa's was opioid overdoses). |
