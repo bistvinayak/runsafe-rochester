@@ -139,7 +139,12 @@
   const groupLabel = () => GROUPS.find((g) => g[0] === prefs.group)[1].replace(/ \(.*/, '').toLowerCase();
   const todLabel = () => TODS.find((t) => t[0] === effTod())[1].toLowerCase();
   const periodDays = () => Src.rangeDays(prefs.range);
-  const periodLabel = () => (periodDays() === 1 ? 'the last day' : 'the ' + Src.rangeLabel(prefs.range).toLowerCase().replace(/^last /, 'last '));
+  const periodLabel = () => {
+    const d = periodDays();
+    const end = live.asOf && live.source ? F.fmtDay(live.asOf, live.source.timezone) : '';
+    if (live.asOf && live.lagDays() >= 1) return d === 1 ? 'the latest day in the data (' + end + ')' : 'the ' + d + ' days ending ' + end;
+    return d === 1 ? 'yesterday' : 'the ' + Src.rangeLabel(prefs.range).toLowerCase().replace(/^last /, 'last ');
+  };
   // Some sources publish dates but no times, so time of day cannot be filtered for them.
   const effTod = () => (live.source && live.source.timeOfDay === false ? 'any' : prefs.tod);
 

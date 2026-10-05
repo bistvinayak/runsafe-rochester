@@ -429,8 +429,10 @@
   const windowLabel = () => {
     const d = Src.rangeDays(state.prefs.range);
     const end = F.fmtDay(live.asOf, live.source.timezone);
-    if (d === 1) return isStale() ? `on ${end}` : 'yesterday';
-    return isStale() ? `the ${d} days ending ${end}` : Src.rangeLabel(state.prefs.range).toLowerCase().replace(/^last /, 'the last ');
+    // Periods end at the newest record, not today. Name the real dates whenever the data is at least a day behind.
+    const behind = live.lagDays() >= 1;
+    if (d === 1) return behind ? `on ${end}, the latest day in the data` : 'yesterday';
+    return behind ? `the ${d} days ending ${end}` : Src.rangeLabel(state.prefs.range).toLowerCase().replace(/^last /, 'the last ');
   };
 
   // "Last reported: 12 days ago (Aug 15, 2026, robbery)".
@@ -532,6 +534,7 @@
         ${src.timeOfDay === false ? '<label>Time of day<span class="muted" style="padding:5px 0">not published</span></label>' : `<label>Time of day<select id="tod">${opts(TODS, p.tod)}</select></label>`}
         <label>Show<select id="group">${opts(GROUPS, p.group)}</select></label>
       </div>
+      ${live.asOf && live.lagDays() >= 1 ? `<div class="muted" style="margin:-2px 0 6px">Periods end at the newest record (${F.fmtDay(live.asOf, src.timezone)}, ${live.lagDays()} days ago), not today.</div>` : ''}
       <div class="check"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="heat"${p.heat ? ' checked' : ''}> Show heatmap</label><button class="link" id="open">Full heatmap and sources ↗</button></div>
       ${freshnessBox()}${truncated}
       ${selectedBox()}${areaBox()}${routeBox()}
