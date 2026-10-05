@@ -29,6 +29,16 @@ const view = (lat, lng, z = 15) => ({ lat, lng, bbox: viewBbox({ lat, lng, z }, 
   assert.strictEqual(count(), 'reference', 'time-of-day only needs a new reference');
   console.log('after-dark filter-> only the reference reloaded');
 
+  const rows30 = live.rows.length;
+  await live.ensure(Object.assign(view(40.70, -73.95), { group: 'property', tod: 'dark', range: '7' }));
+  assert.strictEqual(count(), 'reference,window', 'a new period reloads rows and the reference');
+  assert.strictEqual(live.window.days, 7);
+  assert(live.rows.length <= rows30, '7 days should have no more rows than 30');
+  assert(live.rows.every((r) => r.t >= live.window.from - 86400000), 'rows inside the 7-day window');
+  console.log('period -> 7 days | calls: reference,window | rows:', live.rows.length, '(was', rows30 + ')');
+  await live.ensure(Object.assign(view(40.70, -73.95), { group: 'property', tod: 'dark', range: '7' }));
+  assert.strictEqual(count(), '', 'same period must not reload');
+
   const last = await live.lastNear(40.758, -73.985, 'violent', 'any');
   const again = await live.lastNear(40.758, -73.985, 'violent', 'any');
   console.log('last near Times Sq:', last && new Date(last.t).toISOString(), '| second lookup cached:', count());

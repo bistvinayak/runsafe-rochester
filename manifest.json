@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "RunSafe",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Shows recent reported crime from police open data as a heatmap on Google Maps, and rates running routes. 18 areas so far.",
   "permissions": [
     "storage"

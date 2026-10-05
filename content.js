@@ -14,7 +14,7 @@
   const RADIUS_M = 200;
   const STALE_WARNING_DAYS = 7; // warn when the newest record is older than this
   const PREF_KEY = 'runsafe.prefs.v2';
-  const DEFAULT_PREFS = { group: 'violent', tod: 'any', heat: true, collapsed: false, hidden: false };
+  const DEFAULT_PREFS = { group: 'violent', tod: 'any', range: '30', heat: true, collapsed: false, hidden: false };
   const REQUEST_URL = 'https://github.com/bistvinayak/runsafe-rochester/issues/new';
 
   // Adapter calls run in the background worker, which is allowed to contact the data services.
@@ -347,7 +347,7 @@
     const seq = ++refreshSeq;
     const p = state.prefs;
     const bbox = L.union(L.viewBbox(v, window.innerWidth, window.innerHeight), routeBbox());
-    const pending = live.ensure({ lat: v.lat, lng: v.lng, bbox, group: p.group, tod: p.tod });
+    const pending = live.ensure({ lat: v.lat, lng: v.lng, bbox, group: p.group, tod: p.tod, range: p.range });
     renderCard(); // shows "loading" right away if a fetch started
     const status = await pending;
     if (status === 'stale' || seq !== refreshSeq) return;
@@ -425,8 +425,13 @@
   // Some sources publish dates but no times, so time-of-day filtering is meaningless for them.
   const effTod = () => (live.source && live.source.timeOfDay === false ? 'any' : state.prefs.tod);
   const isStale = () => live.lagDays() >= STALE_WARNING_DAYS;
-  // "last 30 days" when the data is current, otherwise the 30 days that end at the newest record.
-  const windowLabel = () => (isStale() ? `the 30 days ending ${F.fmtDay(live.asOf, live.source.timezone)}` : 'the last 30 days');
+  // "the last 7 days" when the data is current, otherwise the same period ending at the newest record.
+  const windowLabel = () => {
+    const d = Src.rangeDays(state.prefs.range);
+    const end = F.fmtDay(live.asOf, live.source.timezone);
+    if (d === 1) return isStale() ? `on ${end}` : 'yesterday';
+    return isStale() ? `the ${d} days ending ${end}` : Src.rangeLabel(state.prefs.range).toLowerCase().replace(/^last /, 'the last ');
+  };
 
   // "Last reported: 12 days ago (Aug 15, 2026, robbery)".
   function lastLine(row, prefix) {
@@ -523,6 +528,7 @@
     const note = (src.notes && src.notes[0]) || '';
     return `<div class="body">
       <div class="row">
+        <label>Period<select id="range">${opts(Src.RANGES, p.range)}</select></label>
         ${src.timeOfDay === false ? '<label>Time of day<span class="muted" style="padding:5px 0">not published</span></label>' : `<label>Time of day<select id="tod">${opts(TODS, p.tod)}</select></label>`}
         <label>Show<select id="group">${opts(GROUPS, p.group)}</select></label>
       </div>
@@ -572,6 +578,7 @@
     };
     change('group', 'group', (el) => el.value, true);
     change('tod', 'tod', (el) => el.value, true);
+    change('range', 'range', (el) => el.value, true);
     change('heat', 'heat', (el) => el.checked, false);
 
     const open = $('open');

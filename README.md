@@ -26,7 +26,7 @@ On Google Maps, the toolbar icon shows or hides the overlay. On any other tab it
 
 ## What it does
 
-- **Heatmap** of reported incidents for the 30 days ending at the newest record, filtered by type (violent, property, all) and time of day (any, daylight, after dark). Zoom in past level 16 to see individual incidents.
+- **Heatmap** of reported incidents for a chosen period (yesterday, last 7 days, month, quarter or year) ending at the newest record, filtered by type (violent, property, all) and time of day (any, daylight, after dark). Zoom in past level 16 to see individual incidents.
 - **Area rating** for the dashed circle at the middle of the map (200 m radius): how it ranks against the rest of the same city, with counts by crime type.
 - **Last reported:** a live lookup of the most recent incident within 200 m over the last 2 years, so a quiet spot still says when something last happened.
 - **Clickable incidents:** click a dot on the map (zoom 16+) or a row in the card's list to see the type, description, exact date and time, and a link to the unmodified police record.
@@ -40,7 +40,7 @@ On Google Maps, the toolbar icon shows or hides the overlay. On any other tab it
 Nothing about incidents is stored on the computer. When you open a covered area:
 
 1. The overlay asks the background worker for the newest record date of that area's source.
-2. It then asks for the incidents inside the visible map (plus a margin) for the 30 days ending at that date, and one small per-cell count table for the whole city, used only for ratings.
+2. It then asks for the incidents inside the visible map (plus a margin) for the chosen period (30 days by default) ending at that date, and one small per-cell count table for the whole city, used only for ratings.
 3. Filtering, scoring and drawing happen in the tab, in memory. Panning within the loaded margin makes no new request; moving far or changing the type or time filter does. A tab that has been open for 10 minutes reloads on its next move.
 4. Only your filter choices are saved in the browser.
 

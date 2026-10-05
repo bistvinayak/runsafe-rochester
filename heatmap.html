@@ -27,6 +27,7 @@
         <h2>Filters</h2>
         <div class="grid">
           <label class="full">Area<select id="city"></select></label>
+          <label>Period<select id="range"></select></label>
           <label>Time of day<select id="tod"></select></label>
           <label>Show<select id="group"></select></label>
         </div>
@@ -73,7 +74,7 @@
       </section>
       <section>
         <h3>3. What we do with it</h3>
-        <p>Each map view asks the police data server live for only the area you are looking at, covering the 30 days that end at the newest record. Nothing is saved on your computer except your filter choices.</p>
+        <p>Each map view asks the police data server live for only the area you are looking at, covering the period you choose (yesterday up to the last year), always ending at the newest record. Nothing is saved on your computer except your filter choices.</p>
         <p>The heatmap only smooths the department's points so clusters are easy to see. Dots are the individual records, placed where the department geocoded them. A rating compares a spot with every 200 m spot in the urban part of the same city, using the same filters, so it only ever means "compared with this city." Incidents count more when they are more serious:</p>
         <table id="weights"></table>
       </section>

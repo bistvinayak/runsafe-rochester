@@ -15,7 +15,7 @@
   const RED = '#c9302c', ORANGE = '#e8772e';
   const STALE_WARNING_DAYS = 7;
 
-  const prefs = { group: 'violent', tod: 'any', heat: true, dots: true };
+  const prefs = { group: 'violent', tod: 'any', range: '30', heat: true, dots: true };
   const $ = (id) => document.getElementById(id);
   const esc = F.esc;
   const live = new Live.LiveSession((source, op, args) => A.run(source, op, args));
@@ -112,7 +112,7 @@
     const c = map.getCenter();
     const b = map.getBounds();
     const pending = live.ensure({
-      lat: c.lat, lng: c.lng, group: prefs.group, tod: prefs.tod,
+      lat: c.lat, lng: c.lng, group: prefs.group, tod: prefs.tod, range: prefs.range,
       bbox: { south: b.getSouth(), north: b.getNorth(), west: b.getWest(), east: b.getEast() },
     });
     renderChips();
@@ -126,7 +126,7 @@
   async function fetchCount() {
     const src = live.source;
     if (!src || !live.window) return;
-    const key = src.id + '|' + live.asOf;
+    const key = src.id + '|' + live.asOf + '|' + live.window.days;
     if (countInfo && countInfo.key === key) return;
     countInfo = { key, count: null };
     try {
@@ -138,6 +138,8 @@
   // ---------- rendering ----------
   const groupLabel = () => GROUPS.find((g) => g[0] === prefs.group)[1].replace(/ \(.*/, '').toLowerCase();
   const todLabel = () => TODS.find((t) => t[0] === effTod())[1].toLowerCase();
+  const periodDays = () => Src.rangeDays(prefs.range);
+  const periodLabel = () => (periodDays() === 1 ? 'the last day' : 'the ' + Src.rangeLabel(prefs.range).toLowerCase().replace(/^last /, 'last '));
   // Some sources publish dates but no times, so time of day cannot be filtered for them.
   const effTod = () => (live.source && live.source.timeOfDay === false ? 'any' : prefs.tod);
 
@@ -151,7 +153,7 @@
     if (live.asOf && src) {
       const stale = live.lagDays() >= STALE_WARNING_DAYS;
       chips.push(`<span class="chip${stale ? ' warn' : ''}">Data through <b>${F.fmtDate(live.asOf, src.timezone)}</b>${stale ? ` (${live.lagDays()} days behind)` : ''}</span>`);
-      if (countInfo && countInfo.count != null) chips.push(`<span class="chip">Records in the 30 days, whole city: <b>${countInfo.count.toLocaleString()}</b></span>`);
+      if (countInfo && countInfo.count != null) chips.push(`<span class="chip">Records in ${esc(periodLabel())}, whole city: <b>${countInfo.count.toLocaleString()}</b></span>`);
       if (live.truncated) chips.push('<span class="chip warn">Too many to load here. Zoom in.</span>');
       if (live.loadedAt) chips.push(`<span class="chip">Fetched ${new Date(live.loadedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} <button class="linkbtn" id="refresh">Refresh</button></span>`);
     }
@@ -177,9 +179,9 @@
     const cl = $('countLink');
     if (countInfo && countInfo.url) cl.href = countInfo.url;
     $('freshness').textContent = live.asOf
-      ? `The newest record occurred on ${F.fmtDate(live.asOf, src.timezone)} (${F.timeAgo(live.asOf)}). This page shows the 30 days ending then. Agencies add records after reports are filed, so very recent incidents can be missing.`
+      ? `The newest record occurred on ${F.fmtDate(live.asOf, src.timezone)} (${F.timeAgo(live.asOf)}). This page shows ${periodLabel()} ending then. Agencies add records after reports are filed, so very recent incidents can be missing.`
       : '';
-    $('windowNote').textContent = live.asOf ? `Showing the 30 days ending ${F.fmtDate(live.asOf, live.source.timezone)}.` : '';
+    $('windowNote').textContent = live.asOf ? `Showing ${periodDays() === 1 ? 'the day' : 'the ' + periodDays() + ' days'} ending ${F.fmtDate(live.asOf, live.source.timezone)}.` : '';
   }
 
   function renderSummary() {
@@ -191,7 +193,7 @@
       $('bycat').innerHTML = ''; $('hours').innerHTML = ''; $('latest').innerHTML = '';
       return;
     }
-    $('summary').textContent = `${filtered.length.toLocaleString()} reported incident${filtered.length === 1 ? '' : 's'} in view · ${groupLabel()} · ${todLabel()}`;
+    $('summary').textContent = `${filtered.length.toLocaleString()} reported incident${filtered.length === 1 ? '' : 's'} in view · ${periodLabel()} · ${groupLabel()} · ${todLabel()}`;
 
     const counts = {};
     for (const it of filtered) counts[it.c] = (counts[it.c] || 0) + 1;
@@ -249,7 +251,7 @@
     const url = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${live.source.id}-${prefs.group}-${prefs.tod}.csv`;
+    a.download = `${live.source.id}-${periodDays()}d-${prefs.group}-${prefs.tod}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -271,6 +273,7 @@
     await loadPrefs();
     fillSelect('group', GROUPS, prefs.group);
     fillSelect('tod', TODS, prefs.tod);
+    fillSelect('range', Src.RANGES, prefs.range);
     fillSelect('city', [['', 'Other area (no data yet)']].concat(Src.SOURCES.map((s) => [s.id, s.name])), '');
     $('heat').checked = prefs.heat;
     $('dots').checked = prefs.dots;
@@ -282,6 +285,7 @@
     };
     bind('group', 'group', (el) => el.value, true);
     bind('tod', 'tod', (el) => el.value, true);
+    bind('range', 'range', (el) => el.value, true);
     bind('heat', 'heat', (el) => el.checked, false);
     bind('dots', 'dots', (el) => el.checked, false);
     $('city').onchange = () => {
